@@ -382,24 +382,6 @@ subtle blinking terminal cursor
 
 Do not use excessive parallax, scroll hijacking, glowing effects, bouncing elements, mouse trails, or heavy 3D animation.
 
-Overall Goal
-
-The website should make a visitor think:
-
-“This developer understands business problems, builds complete products, has real proof of work, and is someone I could hire.”
-
-Make the design visually impressive through typography, spacing, project presentation, and interaction quality — not decoration.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/78e4017c-3e08-4ce0-a7f5-a2bc504139ad).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
 ## Development
 
 Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
