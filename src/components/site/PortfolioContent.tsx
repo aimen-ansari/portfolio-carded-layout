@@ -323,21 +323,20 @@ export function PortfolioContent({ onOpen }: { onOpen: (slug: string) => void })
                 as="article"
                 max={3.5}
                 lift={5}
-                className="portfolio-card group relative grid gap-5 overflow-hidden rounded-2xl p-4 sm:grid-cols-[10.5rem_1fr] sm:p-5"
+                className="portfolio-card group relative grid gap-5 overflow-hidden rounded-2xl p-4 sm:grid-cols-[12.5rem_1fr] sm:items-start sm:p-5"
               >
                 <button
                   type="button"
                   onClick={() => onOpen(project.slug)}
-                  className="group/img relative overflow-hidden rounded-xl border border-border bg-surface focus-visible:outline-2"
+                  className="group/img relative block aspect-[16/10] w-full overflow-hidden rounded-xl border border-border bg-surface focus-visible:outline-2"
                   aria-label={`View details for ${project.name}`}
                 >
                   <img
                     src={project.image}
                     alt=""
                     loading="lazy"
-                    width={1600}
-                    height={1008}
-                    className="aspect-video h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.06]"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.06]"
                   />
                   <span
                     className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover/img:opacity-100"
@@ -455,7 +454,7 @@ export function PortfolioContent({ onOpen }: { onOpen: (slug: string) => void })
       <section id="contact" className="scroll-mt-20 py-16 lg:py-24" aria-labelledby="contact-title">
         <SectionTitle>Contact</SectionTitle>
         <Reveal>
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-surface/50 p-7 backdrop-blur-sm sm:p-10">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-surface/50 p-7 backdrop-blur-sm sm:p-12">
             <div
               className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl"
               style={{

@@ -119,14 +119,13 @@ export function ProjectModal({
             {project.name}
           </h2>
 
-          <div className="group relative mt-8 overflow-hidden rounded-2xl border border-border">
+          <div className="group relative mt-8 overflow-hidden rounded-2xl border border-border bg-surface">
             <img
               src={project.image}
               alt={`${project.name} interface screenshot`}
               loading="lazy"
-              width={1600}
-              height={1008}
-              className="w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+              decoding="async"
+              className="aspect-[16/10] w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
             />
           </div>
 

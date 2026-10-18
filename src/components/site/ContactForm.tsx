@@ -1,41 +1,14 @@
 import { useState, type FormEvent } from "react";
-import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { ArrowRight, Check, Loader2, TriangleAlert } from "lucide-react";
 
-/** Every inquiry from this form is addressed to this mailbox. */
-const RECIPIENT = "info@aimenansari.com";
-
-/**
- * Contact-form delivery. The form works out of the box by opening the
- * visitor's mail client (addressed to RECIPIENT). Add ONE of the following to
- * a `.env` file (see `.env.example`) to have submissions delivered to
- * RECIPIENT automatically, with no mail app involved:
- *
- *   • Web3Forms — a single key:  VITE_WEB3FORMS_ACCESS_KEY=...
- *   • EmailJS   — three values:  VITE_EMAILJS_SERVICE_ID / _TEMPLATE_ID / _PUBLIC_KEY
- *
- * Preference order: Web3Forms → EmailJS → mail client.
- */
+import { RECIPIENT, sendInquiry } from "@/server-fns/send-inquiry";
 
 /**
- * Web3Forms access keys are public: they are meant to be shipped in client-side
- * code (security comes from domain restrictions in the Web3Forms dashboard).
- * This default is the project's key; it can still be overridden by the env var.
+ * Contact form. Submissions are delivered by Resend through a server
+ * function (see src/server-fns/send-inquiry.ts) so the API key never
+ * reaches the browser. When no RESEND_API_KEY is configured, the form
+ * falls back to opening the visitor's mail app, pre-filled to RECIPIENT.
  */
-const DEFAULT_WEB3FORMS_KEY = "054b860c-ca1d-45b2-ad6b-1cfdc63d6a63";
-
-const WEB3FORMS_KEY =
-  (import.meta.env["VITE_WEB3FORMS_ACCESS_KEY"] as string | undefined) || DEFAULT_WEB3FORMS_KEY;
-const SERVICE_ID = import.meta.env["VITE_EMAILJS_SERVICE_ID"] as string | undefined;
-const TEMPLATE_ID = import.meta.env["VITE_EMAILJS_TEMPLATE_ID"] as string | undefined;
-const PUBLIC_KEY = import.meta.env["VITE_EMAILJS_PUBLIC_KEY"] as string | undefined;
-
-const EMAILJS_READY = Boolean(SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY);
-const PROVIDER: "web3forms" | "emailjs" | "mailto" = WEB3FORMS_KEY
-  ? "web3forms"
-  : EMAILJS_READY
-    ? "emailjs"
-    : "mailto";
-const SENDS_AUTOMATICALLY = PROVIDER !== "mailto";
 
 const projectTypes = [
   "Business Website",
@@ -46,62 +19,73 @@ const projectTypes = [
   "Something else",
 ];
 
-const field =
-  "w-full rounded-xl border border-border bg-background/60 px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-accent";
+/**
+ * Underline fields. The label sits in the placeholder position while the field
+ * is empty, then rises into a small mono caption on focus or once filled.
+ */
+const fieldBase =
+  "peer block w-full rounded-none border-b border-border bg-transparent px-0 pb-2.5 pt-6 text-sm leading-5 text-foreground outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-transparent focus:border-accent focus:shadow-[0_1px_0_0_var(--accent)]";
+
+const floatLabel =
+  "pointer-events-none absolute left-0 top-6 text-sm leading-5 text-muted-foreground transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] " +
+  "peer-focus:top-0 peer-focus:text-[10px] peer-focus:font-mono peer-focus:tracking-[0.16em] peer-focus:uppercase peer-focus:text-accent " +
+  "peer-[&:not(:placeholder-shown)]:top-0 peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:font-mono peer-[&:not(:placeholder-shown)]:tracking-[0.16em] peer-[&:not(:placeholder-shown)]:uppercase";
+
+interface FloatFieldProps {
+  label: string;
+  name: string;
+  required?: boolean;
+  type?: "text" | "email";
+  autoComplete?: string;
+  textarea?: boolean;
+  rows?: number;
+}
+
+function FloatField({
+  label,
+  name,
+  required,
+  type = "text",
+  autoComplete,
+  textarea,
+  rows,
+}: FloatFieldProps) {
+  return (
+    <label className="relative block">
+      {textarea ? (
+        <textarea
+          required={required}
+          name={name}
+          rows={rows ?? 4}
+          placeholder=" "
+          className={`${fieldBase} resize-none`}
+        />
+      ) : (
+        <input
+          required={required}
+          name={name}
+          type={type}
+          autoComplete={autoComplete}
+          placeholder=" "
+          className={fieldBase}
+        />
+      )}
+      <span className={floatLabel}>{label}</span>
+    </label>
+  );
+}
+
+/** Decorative accent hairline that crowns the panel. */
+function TopHairline() {
+  return (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-accent to-transparent"
+    />
+  );
+}
 
 type Status = "idle" | "sending" | "sent" | "error";
-
-interface Inquiry {
-  name: string;
-  email: string;
-  type: string;
-  message: string;
-  subject: string;
-}
-
-async function sendWithWeb3Forms(inquiry: Inquiry) {
-  const response = await fetch("https://api.web3forms.com/submit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({
-      access_key: WEB3FORMS_KEY,
-      subject: inquiry.subject,
-      from_name: inquiry.name,
-      email: inquiry.email,
-      replyto: inquiry.email,
-      project_type: inquiry.type,
-      message: inquiry.message,
-    }),
-  });
-  const result = (await response.json().catch(() => null)) as { success?: boolean } | null;
-  if (!response.ok || !result?.success) {
-    throw new Error("Web3Forms request failed");
-  }
-}
-
-async function sendWithEmailJS(inquiry: Inquiry) {
-  const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      service_id: SERVICE_ID,
-      template_id: TEMPLATE_ID,
-      user_id: PUBLIC_KEY,
-      template_params: {
-        from_name: inquiry.name,
-        from_email: inquiry.email,
-        reply_to: inquiry.email,
-        subject: inquiry.subject,
-        project_type: inquiry.type,
-        message: inquiry.message,
-        to_email: RECIPIENT,
-      },
-    }),
-  });
-  if (!response.ok) {
-    throw new Error(`EmailJS responded with ${response.status}`);
-  }
-}
 
 function openMailClient(subject: string, body: string) {
   window.location.href = `mailto:${RECIPIENT}?subject=${encodeURIComponent(
@@ -109,12 +93,10 @@ function openMailClient(subject: string, body: string) {
   )}&body=${encodeURIComponent(body)}`;
 }
 
-/**
- * Contact form. Delivers to RECIPIENT via Web3Forms or EmailJS when configured,
- * otherwise hands a pre-filled email to the visitor's mail client.
- */
 export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
+  /** How the last inquiry was delivered — drives the sent-state copy. */
+  const [delivered, setDelivered] = useState<"email" | "mail-app">("email");
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -125,23 +107,29 @@ export function ContactForm() {
     const message = String(data.get("message") ?? "").trim();
     const subject = `Project inquiry — ${name || "Portfolio"}`;
 
-    if (PROVIDER === "mailto") {
-      const body = [`Name: ${name}`, `Email: ${email}`, `Project type: ${type}`, "", message].join(
-        "\n",
-      );
-      openMailClient(subject, body);
-      setStatus("sent");
-      return;
-    }
-
     setStatus("sending");
-    const inquiry: Inquiry = { name, email, type, message, subject };
     try {
-      if (PROVIDER === "web3forms") {
-        await sendWithWeb3Forms(inquiry);
-      } else {
-        await sendWithEmailJS(inquiry);
+      const result = await sendInquiry({
+        data: { name, email, type, message, company: String(data.get("company") ?? "") },
+      });
+
+      if (result.status === "not-configured") {
+        // No server-side key (local dev / misconfig): hand off to the mail app.
+        const body = [`Name: ${name}`, `Email: ${email}`, `Project type: ${type}`, "", message].join(
+          "\n",
+        );
+        openMailClient(subject, body);
+        setDelivered("mail-app");
+        setStatus("sent");
+        return;
       }
+
+      if (result.status === "error") {
+        setStatus("error");
+        return;
+      }
+
+      setDelivered("email");
       setStatus("sent");
     } catch {
       setStatus("error");
@@ -150,15 +138,16 @@ export function ContactForm() {
 
   if (status === "sent") {
     return (
-      <div className="reveal flex h-full flex-col justify-center rounded-2xl border border-accent/30 bg-accent/5 p-6 sm:p-8">
-        <span className="grid h-11 w-11 place-items-center rounded-full border border-accent/40 bg-accent/10 text-accent">
+      <div className="reveal relative flex h-full flex-col justify-center overflow-hidden rounded-2xl border border-border bg-background/45 p-7 backdrop-blur-sm sm:p-10">
+        <TopHairline />
+        <span className="grid h-12 w-12 place-items-center rounded-full border border-accent/40 bg-accent/10 text-accent">
           <Check className="h-5 w-5" aria-hidden="true" />
         </span>
-        <p className="label-mono mt-5 text-accent">
-          {SENDS_AUTOMATICALLY ? "Message sent" : "Almost there"}
+        <p className="label-mono mt-6 text-accent">
+          {delivered === "email" ? "Message sent" : "Almost there"}
         </p>
-        <p className="mt-4 text-lg leading-relaxed text-foreground">
-          {SENDS_AUTOMATICALLY ? (
+        <p className="mt-4 text-base leading-relaxed text-foreground">
+          {delivered === "email" ? (
             <>
               Thanks — your inquiry is on its way to{" "}
               <span className="text-accent">{RECIPIENT}</span>. I&apos;ll get back to you within one
@@ -171,7 +160,7 @@ export function ContactForm() {
             </>
           )}
         </p>
-        {!SENDS_AUTOMATICALLY && (
+        {delivered === "mail-app" && (
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             If nothing opened, email me directly — the address is on the left.
           </p>
@@ -179,7 +168,7 @@ export function ContactForm() {
         <button
           type="button"
           onClick={() => setStatus("idle")}
-          className="arrow-shift mt-7 inline-flex w-fit items-center gap-2 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase transition-colors hover:text-accent"
+          className="arrow-shift mt-8 inline-flex w-fit items-center gap-2 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase transition-colors hover:text-accent"
         >
           Write another <ArrowRight className="arrow h-3.5 w-3.5" aria-hidden="true" />
         </button>
@@ -193,102 +182,76 @@ export function ContactForm() {
     <form
       onSubmit={onSubmit}
       aria-label={`Project inquiry form — sends to ${RECIPIENT}`}
-      className="relative grid gap-4 rounded-2xl border border-border bg-background/40 p-5 sm:p-6"
+      className="relative overflow-hidden rounded-2xl border border-border bg-background/45 p-6 backdrop-blur-sm sm:p-8 lg:p-9"
     >
-      <div className="flex items-center justify-between gap-3">
-        <p className="label-mono text-muted-foreground">Project inquiry</p>
+      <TopHairline />
+
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="label-mono text-foreground">Project inquiry</p>
         <span className="hidden font-mono text-[10px] tracking-[0.16em] text-muted-foreground/60 uppercase sm:inline">
-          {SENDS_AUTOMATICALLY ? "Delivered by email" : "Opens your email app"}
+          {RECIPIENT}
         </span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
-            Name
-          </span>
-          <input
-            required
-            name="name"
-            autoComplete="name"
-            placeholder="Your name"
-            className={field}
-          />
-        </label>
-        <label className="grid gap-2">
-          <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
-            Email
-          </span>
-          <input
-            required
-            type="email"
-            name="email"
-            autoComplete="email"
-            placeholder="you@company.com"
-            className={field}
-          />
-        </label>
+      <div className="mt-7 grid gap-x-8 gap-y-7 sm:grid-cols-2">
+        <FloatField label="Name" name="name" required autoComplete="name" />
+        <FloatField label="Email" name="email" type="email" required autoComplete="email" />
       </div>
 
-      <label className="grid gap-2">
-        <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
-          Project type
-        </span>
-        <select required name="type" defaultValue="" className={field}>
-          <option value="" disabled>
-            What are you building?
-          </option>
+      <fieldset className="mt-8">
+        <legend className="label-mono text-muted-foreground">What are you building?</legend>
+        <div className="mt-4 flex flex-wrap gap-2.5">
           {projectTypes.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
+            <label key={type} className="cursor-pointer">
+              <input type="radio" name="type" value={type} required className="peer sr-only" />
+              <span className="inline-flex rounded-full border border-border bg-surface/40 px-4 py-2 text-xs text-muted-foreground transition-colors duration-300 hover:border-accent/50 hover:text-foreground peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent">
+                {type}
+              </span>
+            </label>
           ))}
-        </select>
-      </label>
+        </div>
+      </fieldset>
 
-      <label className="grid gap-2">
-        <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
-          Message
-        </span>
-        <textarea
-          required
-          name="message"
-          rows={4}
-          placeholder="A sentence or two about the project, goals or timeline."
-          className={`${field} resize-none`}
-        />
-      </label>
+      <div className="mt-8">
+        <FloatField label="Message" name="message" required textarea rows={4} />
+      </div>
 
       {status === "error" && (
-        <p className="rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-3 text-xs leading-relaxed text-red-500">
-          Something went wrong sending the message. Please email me directly at{" "}
-          <a className="underline" href={`mailto:${RECIPIENT}`}>
-            {RECIPIENT}
-          </a>
-          .
+        <p className="mt-7 flex items-start gap-2.5 rounded-r-xl border-l-2 border-destructive bg-destructive/5 px-4 py-3 text-xs leading-relaxed text-destructive">
+          <TriangleAlert className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>
+            Something went wrong sending the message. Please email me directly at{" "}
+            <a className="underline underline-offset-2" href={`mailto:${RECIPIENT}`}>
+              {RECIPIENT}
+            </a>
+            .
+          </span>
         </p>
       )}
 
-      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <button
-          type="submit"
-          disabled={sending}
-          className="arrow-shift shine-sweep inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {sending ? (
-            <>
-              Sending <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            </>
-          ) : (
-            <>
-              Send inquiry <ArrowRight className="arrow h-4 w-4" aria-hidden="true" />
-            </>
-          )}
-        </button>
-        <span className="text-xs text-muted-foreground">
-          Goes to <span className="text-accent">{RECIPIENT}</span>
-        </span>
+      {/* Honeypot — hidden from humans; bots that fill it are dropped silently. */}
+      <div className="sr-only" aria-hidden="true">
+        <label>
+          Company
+          <input name="company" type="text" tabIndex={-1} autoComplete="off" />
+        </label>
       </div>
+
+      <button
+        type="submit"
+        disabled={sending}
+        className="arrow-shift shine-sweep mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-[0_18px_42px_-18px_color-mix(in_oklch,var(--accent)_85%,transparent)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {sending ? (
+          <>
+            Sending <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          </>
+        ) : (
+          <>
+            Send inquiry <ArrowRight className="arrow h-4 w-4" aria-hidden="true" />
+          </>
+        )}
+      </button>
     </form>
   );
 }
