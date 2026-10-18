@@ -52,8 +52,8 @@ export function ContactSection() {
               )}
             >
               <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-                Share the problem, not the spec. I'll reply with an honest view of scope,
-                approach and timeline — usually within one working day.
+                Share the problem, not the spec. I'll reply with an honest view of scope, approach
+                and timeline — usually within one working day.
               </p>
               <button
                 type="button"
@@ -147,7 +147,7 @@ export function ContactSection() {
 
         <div className="mt-10 flex flex-wrap gap-x-10 gap-y-4">
           {[
-            { label: "Email", href: "mailto:hello@aimenansari.dev" },
+            { label: "Email", href: "mailto:info@aimenansari.com" },
             { label: "LinkedIn", href: "https://www.linkedin.com/in/aimenansari" },
             { label: "GitHub", href: "https://github.com/aimenansari" },
           ].map((l) => (

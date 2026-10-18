@@ -1,5 +1,6 @@
-import { useEffect } from "react";
-import { X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { ArrowUpRight, X } from "lucide-react";
+
 import { projects, type Project } from "@/data/projects";
 
 export function ProjectModal({
@@ -11,18 +12,53 @@ export function ProjectModal({
   onClose: () => void;
   onNavigate: (slug: string) => void;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const slug = project?.slug ?? null;
+
   useEffect(() => {
     if (!project) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      const index = projects.findIndex((p) => p.slug === project.slug);
+      if (e.key === "ArrowLeft") {
+        onNavigate(projects[(index - 1 + projects.length) % projects.length]!.slug);
+      }
+      if (e.key === "ArrowRight") {
+        onNavigate(projects[(index + 1) % projects.length]!.slug);
+      }
+      if (e.key === "Tab") {
+        const focusables = dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+        if (!focusables || focusables.length === 0) return;
+        const first = focusables[0]!;
+        const last = focusables[focusables.length - 1]!;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
+
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+    const raf = requestAnimationFrame(() => dialogRef.current?.focus());
+
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      cancelAnimationFrame(raf);
+      previouslyFocused?.focus?.();
     };
-  }, [project, onClose]);
+  }, [project, onClose, onNavigate]);
 
   if (!project) return null;
 
@@ -36,38 +72,63 @@ export function ProjectModal({
         type="button"
         aria-label="Close project"
         onClick={onClose}
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm"
+        className="fixed inset-0 bg-background/85 backdrop-blur-md"
+        style={{ animation: "fade-in 300ms ease both" }}
       />
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={project.name}
-        key={project.slug}
-        className="reveal relative z-10 my-0 w-full max-w-4xl border border-border bg-surface sm:my-6 sm:rounded-3xl"
+        aria-labelledby="project-modal-title"
+        tabIndex={-1}
+        key={slug}
+        className="relative z-10 my-0 w-full max-w-4xl border border-border bg-surface/95 outline-none backdrop-blur-xl sm:my-6 sm:rounded-3xl"
+        style={{
+          animation: "modal-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both",
+          boxShadow:
+            "0 40px 100px -40px color-mix(in oklch, var(--accent) 45%, transparent), var(--glass-shadow)",
+        }}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface/95 px-6 py-4 backdrop-blur sm:rounded-t-3xl sm:px-9">
-          <p className="label-mono text-muted-foreground">{project.category}</p>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent"
-          >
-            <X className="h-4 w-4" />
-          </button>
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface/90 px-6 py-4 backdrop-blur-xl sm:rounded-t-3xl sm:px-9">
+          <div className="flex items-center gap-3">
+            <span className="live-dot text-accent" aria-hidden="true">
+              ◆
+            </span>
+            <p className="label-mono text-muted-foreground">{project.category}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden font-mono text-[10px] tracking-[0.16em] text-muted-foreground/70 uppercase sm:inline">
+              Esc to close
+            </span>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground transition-[border-color,color,transform] duration-300 hover:rotate-90 hover:border-accent hover:text-accent"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         <div className="px-6 pt-8 pb-10 sm:px-9 sm:pb-12">
-          <h2 className="text-3xl font-medium tracking-[-0.02em] sm:text-4xl">{project.name}</h2>
+          <h2
+            id="project-modal-title"
+            className="text-3xl font-medium tracking-[-0.02em] text-balance sm:text-4xl"
+          >
+            {project.name}
+          </h2>
 
-          <img
-            src={project.image}
-            alt={`${project.name} interface screenshot`}
-            loading="lazy"
-            width={1600}
-            height={1008}
-            className="mt-8 w-full rounded-2xl border border-border object-cover"
-          />
+          <div className="group relative mt-8 overflow-hidden rounded-2xl border border-border">
+            <img
+              src={project.image}
+              alt={`${project.name} interface screenshot`}
+              loading="lazy"
+              width={1600}
+              height={1008}
+              className="w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+            />
+          </div>
 
           <div className="mt-10 grid gap-10 lg:grid-cols-[1.5fr_1fr]">
             <div className="space-y-8">
@@ -91,7 +152,7 @@ export function ProjectModal({
               <div>
                 <p className="label-mono text-muted-foreground">My role</p>
                 {project.roleTitle && (
-                  <p className="mt-3 text-sm font-medium leading-relaxed text-accent">
+                  <p className="mt-3 text-sm leading-relaxed font-medium text-accent">
                     {project.roleTitle}
                   </p>
                 )}
@@ -122,7 +183,7 @@ export function ProjectModal({
                   {project.stack.map((t) => (
                     <span
                       key={t}
-                      className="rounded-full border border-border px-3 py-1.5 font-mono text-[11px] tracking-wide text-muted-foreground"
+                      className="rounded-full border border-border px-3 py-1.5 font-mono text-[11px] tracking-wide text-muted-foreground transition-colors hover:border-accent/50 hover:text-accent"
                     >
                       {t}
                     </span>
@@ -136,7 +197,7 @@ export function ProjectModal({
                 rel="noopener noreferrer"
                 className="arrow-shift inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
               >
-                Visit Live Website <span className="arrow">↗</span>
+                Visit Live Website <ArrowUpRight className="arrow h-4 w-4" aria-hidden="true" />
               </a>
             </div>
           </div>
@@ -145,18 +206,22 @@ export function ProjectModal({
             <button
               type="button"
               onClick={() => onNavigate(prev.slug)}
-              className="text-left transition-colors hover:text-accent"
+              className="group text-left transition-colors hover:text-accent"
             >
               <span className="label-mono block text-muted-foreground">← Previous</span>
-              <span className="mt-1 block text-sm">{prev.name}</span>
+              <span className="mt-1 block text-sm transition-transform duration-300 group-hover:-translate-x-0.5">
+                {prev.name}
+              </span>
             </button>
             <button
               type="button"
               onClick={() => onNavigate(next.slug)}
-              className="text-right transition-colors hover:text-accent"
+              className="group text-right transition-colors hover:text-accent"
             >
               <span className="label-mono block text-muted-foreground">Next →</span>
-              <span className="mt-1 block text-sm">{next.name}</span>
+              <span className="mt-1 block text-sm transition-transform duration-300 group-hover:translate-x-0.5">
+                {next.name}
+              </span>
             </button>
           </div>
         </div>

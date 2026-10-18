@@ -17,7 +17,7 @@ export function Footer() {
           {[
             { label: "GitHub", href: "https://github.com/aimenansari" },
             { label: "LinkedIn", href: "https://www.linkedin.com/in/aimenansari" },
-            { label: "Email", href: "mailto:hello@aimenansari.dev" },
+            { label: "Email", href: "mailto:info@aimenansari.com" },
           ].map((l, i) => (
             <span key={l.label} className="flex items-center gap-4">
               {i > 0 && <span className="text-muted-foreground">·</span>}

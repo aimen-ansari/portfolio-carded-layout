@@ -101,6 +101,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
+    scripts: [
+      {
+        // Applies the stored theme before first paint to avoid a flash of the
+        // wrong colour scheme.
+        children:
+          '(function(){try{var t=localStorage.getItem("aa-theme");if(t==="light"||t==="dark"){document.documentElement.classList.toggle("dark",t==="dark");}}catch(e){}})();',
+      },
+    ],
   }),
 
   shellComponent: RootShell,

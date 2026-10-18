@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Navbar } from "@/components/site/Navbar";
+import { PointerSpotlight } from "@/components/site/PointerSpotlight";
 import { PortfolioContent } from "@/components/site/PortfolioContent";
+import { Preloader } from "@/components/site/Preloader";
 import { ProjectModal } from "@/components/site/ProjectModal";
+import { ScrollProgress } from "@/components/site/ScrollProgress";
 import { getProject } from "@/data/projects";
 
 const title = "Aimen Ansari — Full-Stack Developer & Product Engineer";
@@ -41,20 +44,10 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [slug, setSlug] = useState<string | null>(null);
-  const spotlight = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const initial = new URLSearchParams(window.location.search).get("project");
     if (initial && getProject(initial)) setSlug(initial);
-  }, []);
-
-  useEffect(() => {
-    const onPointerMove = (event: PointerEvent) => {
-      spotlight.current?.style.setProperty("--spotlight-x", `${event.clientX}px`);
-      spotlight.current?.style.setProperty("--spotlight-y", `${event.clientY}px`);
-    };
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    return () => window.removeEventListener("pointermove", onPointerMove);
   }, []);
 
   const open = useCallback((next: string) => {
@@ -73,18 +66,22 @@ function Index() {
 
   return (
     <div id="top" className="site-shell relative min-h-screen bg-background text-foreground">
+      <Preloader />
+      <ScrollProgress />
       <a
         href="#content"
-        className="fixed top-3 left-3 z-[70] -translate-y-20 rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground transition-transform focus:translate-y-0"
+        className="fixed top-3 left-3 z-[70] -translate-y-24 rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground transition-transform focus:translate-y-0"
       >
         Skip to content
       </a>
-      <div ref={spotlight} className="pointer-spotlight" aria-hidden="true" />
-      <div className="relative mx-auto max-w-6xl px-6 sm:px-12 lg:flex lg:justify-between lg:gap-16 xl:gap-24">
+      <div className="site-grid" aria-hidden="true" />
+      <PointerSpotlight />
+      <div className="relative z-10 mx-auto max-w-6xl px-6 sm:px-12 lg:flex lg:justify-between lg:gap-16 xl:gap-24">
         <Navbar />
         <PortfolioContent onOpen={open} />
       </div>
       <ProjectModal project={getProject(slug)} onClose={close} onNavigate={open} />
+      <div className="site-noise" aria-hidden="true" />
     </div>
   );
 }
