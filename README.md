@@ -330,7 +330,7 @@ Do not require budget.
 
 Always show direct links to:
 
-Email
+Email web3Forms used for contact server SMTP
 
 LinkedIn
 
