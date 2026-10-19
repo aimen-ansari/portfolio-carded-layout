@@ -5,7 +5,9 @@ import Lenis from "lenis";
 
 import { setLenis } from "@/lib/lenis";
 
-gsap.registerPlugin(ScrollTrigger);
+// Client-only: registering wakes the GSAP ticker (a setTimeout), which the
+// Workers SSR runtime forbids during module evaluation in global scope.
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
 /**
  * Lenis smooth scrolling driven by the GSAP ticker and kept in sync with

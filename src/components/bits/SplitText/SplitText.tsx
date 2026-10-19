@@ -4,7 +4,10 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText as GSAPSplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(ScrollTrigger, GSAPSplitText, useGSAP);
+// Registration wakes GSAP's ticker, which schedules a setTimeout — in the
+// Workers SSR runtime module scope forbids timers ("Disallowed operation
+// called within global scope"), so register in the browser only.
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger, GSAPSplitText, useGSAP);
 
 export type SplitTextEffect = "rise" | "fade" | "blur" | "flip" | "pop" | "skew" | "wave";
 
