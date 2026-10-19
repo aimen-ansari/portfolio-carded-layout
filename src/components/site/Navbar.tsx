@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Github, Linkedin, Mail, Moon, Sun } from "lucide-react";
 import { siWhatsapp } from "simple-icons";
 
+import SplitText from "@/components/bits/SplitText/SplitText";
+import { useReducedMotion } from "@/lib/use-mounted";
 import { useTheme } from "@/lib/use-theme";
 import { Magnetic } from "./Magnetic";
 
@@ -84,8 +86,16 @@ const railProgress = (el: HTMLElement | null, value: number) => {
 
 export function Navbar() {
   const [active, setActive] = useState("about");
+  /** Held back until the intro veil lifts so the reveal is actually seen. */
+  const [introDone, setIntroDone] = useState(false);
   const { theme, toggle } = useTheme();
   const fillRef = useRef<HTMLSpanElement>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setIntroDone(true), reduced ? 0 : 1350);
+    return () => window.clearTimeout(id);
+  }, [reduced]);
 
   useEffect(() => {
     const sections = links
@@ -173,9 +183,23 @@ export function Navbar() {
           </button>
         </div>
 
-        <h1 className="mt-9 text-4xl leading-none font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:mt-8">
-          Aimen Ansari
-        </h1>
+        {introDone ? (
+          <SplitText
+            tag="h1"
+            text="Aimen Ansari"
+            splitType="words"
+            effect="rise"
+            trigger="load"
+            delay={80}
+            duration={0.9}
+            staggerFrom="start"
+            className="mt-9 text-4xl leading-none font-semibold tracking-[-0.04em] sm:text-5xl lg:mt-8"
+          />
+        ) : (
+          <h1 className="mt-9 text-4xl leading-none font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:mt-8">
+            Aimen Ansari
+          </h1>
+        )}
         <h2 className="mt-4 text-lg font-medium tracking-[-0.01em] text-foreground sm:text-xl">
           Software Engineer &amp; Full-Stack Developer
         </h2>

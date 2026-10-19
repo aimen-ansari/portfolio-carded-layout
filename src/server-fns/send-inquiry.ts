@@ -72,10 +72,13 @@ export const sendInquiry = createServerFn({ method: "POST" })
     const testInbox = process.env["RESEND_TEST_INBOX"]?.trim();
     const testMode = Boolean(process.env["RESEND_TEST_MODE"]?.trim() && testInbox);
 
-    // Resend only accepts onboarding@resend.dev while the domain is unverified.
+    // SENDING DOMAIN: Resend only accepts a "from" address on a VERIFIED domain.
+    // The verified domain here is send.aimenansari.com (subdomain), so the sender
+    // must be <anything>@send.aimenansari.com. The recipient (to) stays info@aimenansari.com.
+    // Override with RESEND_FROM if you ever change the sending domain.
     const from = testMode
       ? "Aimen Ansari <onboarding@resend.dev>"
-      : process.env["RESEND_FROM"]?.trim() || `Aimen Ansari <${RECIPIENT}>`;
+      : process.env["RESEND_FROM"]?.trim() || "Aimen Ansari <hello@send.aimenansari.com>";
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",

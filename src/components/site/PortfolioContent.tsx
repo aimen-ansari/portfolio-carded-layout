@@ -1,7 +1,9 @@
 import {
   ArrowRight,
   ArrowUpRight,
+  Github,
   LayoutDashboard,
+  Linkedin,
   Mail,
   MessageCircle,
   Server,
@@ -9,6 +11,8 @@ import {
   Store,
 } from "lucide-react";
 
+import CountUp from "@/components/bits/CountUp/CountUp";
+import DecryptedText from "@/components/bits/DecryptedText/DecryptedText";
 import { projects } from "@/data/projects";
 import { ContactForm } from "./ContactForm";
 import { HeroStage } from "./HeroStage";
@@ -226,7 +230,7 @@ export function PortfolioContent({ onOpen }: { onOpen: (slug: string) => void })
             product.
           </p>
           <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
-            04 disciplines
+            <CountUp to={services.length} trigger="view" duration={1.4} /> disciplines
           </span>
         </div>
 
@@ -312,7 +316,7 @@ export function PortfolioContent({ onOpen }: { onOpen: (slug: string) => void })
             case study.
           </p>
           <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
-            {String(projects.length).padStart(2, "0")} projects
+            <CountUp to={projects.length} trigger="view" duration={1.4} /> projects
           </span>
         </div>
 
@@ -449,12 +453,25 @@ export function PortfolioContent({ onOpen }: { onOpen: (slug: string) => void })
           ))}
         </div>
       </section>
+    </main>
+  );
+}
 
+/**
+ * Full-width contact band + footer.
+ *
+ * These live OUTSIDE the 57% content column on desktop so the section can use
+ * the whole page container. The nav is a sticky left rail (lg:w-[43%]), so a
+ * full-width band below the main content is safe and keeps the form comfortable.
+ */
+export function ContactBand() {
+  return (
+    <div className="relative z-10 mx-auto max-w-6xl px-6 sm:px-12">
       {/* ----------------------------------------------------------- contact */}
       <section id="contact" className="scroll-mt-20 py-16 lg:py-24" aria-labelledby="contact-title">
         <SectionTitle>Contact</SectionTitle>
         <Reveal>
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-surface/50 p-7 backdrop-blur-sm sm:p-12">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-surface/50 p-7 backdrop-blur-sm sm:p-10 lg:p-12">
             <div
               className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl"
               style={{
@@ -463,50 +480,108 @@ export function PortfolioContent({ onOpen }: { onOpen: (slug: string) => void })
               }}
               aria-hidden="true"
             />
-            <div className="relative grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-14">
-              <div>
-                <p className="label-mono text-accent">What&apos;s next?</p>
+            {/* minmax(0, …) keeps columns shrinkable so nothing overflows.
+                Desktop ≈ 55% intro / 45% form. Stacks on mobile. */}
+            <div className="relative grid gap-12 md:grid-cols-2 md:items-start md:gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-16">
+              <div className="min-w-0">
+                <p className="label-mono flex items-center gap-2.5 text-accent">
+                  <span
+                    className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-accent"
+                    aria-hidden="true"
+                  />
+                  What&apos;s next?
+                </p>
                 <h2
                   id="contact-title"
-                  className="mt-5 max-w-lg text-3xl font-medium tracking-[-0.035em] text-balance sm:text-4xl"
+                  className="mt-6 max-w-xl text-4xl font-medium tracking-[-0.035em] text-balance sm:text-5xl"
                 >
                   Have something in mind?
                 </h2>
-                <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground">
+                <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                   Tell me what you&apos;re building, the problem you&apos;re solving, or the role
                   you&apos;re hiring for. I&apos;ll get back to you with the best way we can move
                   forward.
                 </p>
 
-                <ul className="mt-8 space-y-3" aria-label="Direct contact details">
-                  <li>
+                <div className="mt-8 inline-flex items-center gap-2.5 rounded-full border border-border bg-surface/60 px-4 py-2">
+                  <span className="live-dot text-accent" aria-hidden="true">
+                    ●
+                  </span>
+                  <span className="font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
+                    Replies within 1 working day
+                  </span>
+                </div>
+
+                <ul className="mt-10 grid gap-3 sm:grid-cols-2" aria-label="Direct contact details">
+                  {[
+                    {
+                      label: "Email",
+                      value: "info@aimenansari.com",
+                      href: "mailto:info@aimenansari.com",
+                      Icon: Mail,
+                      external: false,
+                    },
+                    {
+                      label: "WhatsApp",
+                      value: "+92 316 1794215",
+                      href: "https://wa.me/923161794215",
+                      Icon: MessageCircle,
+                      external: true,
+                    },
+                  ].map(({ label, value, href, Icon, external }) => (
+                    <li key={label}>
+                      <a
+                        href={href}
+                        target={external ? "_blank" : undefined}
+                        rel={external ? "noopener noreferrer" : undefined}
+                        className="group flex items-center gap-4 rounded-2xl border border-border bg-surface/50 p-4 transition-colors duration-300 hover:border-accent/50 hover:bg-surface/80"
+                      >
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-background/60 text-accent transition-colors group-hover:border-accent/50">
+                          <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
+                            {label}
+                          </span>
+                          <span className="mt-1 block truncate text-sm text-foreground transition-colors group-hover:text-accent">
+                            {value}
+                          </span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3">
+                  <span className="label-mono text-muted-foreground/70">Find me</span>
+                  {[
+                    { label: "GitHub", href: "https://github.com/aimen-ansari", Icon: Github },
+                    {
+                      label: "LinkedIn",
+                      href: "https://www.linkedin.com/in/aimen92/",
+                      Icon: Linkedin,
+                    },
+                  ].map(({ label, href, Icon }) => (
                     <a
-                      href="mailto:info@aimenansari.com"
-                      className="group inline-flex items-center gap-3 text-sm text-foreground transition-colors hover:text-accent"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border bg-surface/70 text-accent transition-colors group-hover:border-accent/50">
-                        <Mail className="h-4 w-4" aria-hidden="true" />
-                      </span>
-                      info@aimenansari.com
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="https://wa.me/923161794215"
+                      key={label}
+                      href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group inline-flex items-center gap-3 text-sm text-foreground transition-colors hover:text-accent"
+                      className="arrow-shift group inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase transition-colors hover:text-accent"
                     >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border bg-surface/70 text-accent transition-colors group-hover:border-accent/50">
-                        <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                      {label}
+                      <span className="arrow" aria-hidden="true">
+                        ↗
                       </span>
-                      +92 316 1794215
                     </a>
-                  </li>
-                </ul>
+                  ))}
+                </div>
               </div>
 
-              <ContactForm />
+              <div className="min-w-0">
+                <ContactForm />
+              </div>
             </div>
           </div>
         </Reveal>
@@ -518,9 +593,20 @@ export function PortfolioContent({ onOpen }: { onOpen: (slug: string) => void })
         </p>
         <p>Designed and built by Aimen Ansari. Pakistan · Worldwide remote.</p>
         <p className="mt-2 font-mono text-[10px] tracking-[0.15em] uppercase">
-          © 2026 EOF<span className="terminal-cursor text-accent">_</span>
+          © 2026{" "}
+          <DecryptedText
+            text="EOF"
+            animateOn="view"
+            sequential
+            revealDirection="start"
+            speed={60}
+            maxIterations={8}
+            useOriginalCharsOnly
+            className="text-accent"
+          />
+          <span className="terminal-cursor text-accent">_</span>
         </p>
       </footer>
-    </main>
+    </div>
   );
 }

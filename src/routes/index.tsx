@@ -3,10 +3,11 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Navbar } from "@/components/site/Navbar";
 import { PointerSpotlight } from "@/components/site/PointerSpotlight";
-import { PortfolioContent } from "@/components/site/PortfolioContent";
+import { ContactBand, PortfolioContent } from "@/components/site/PortfolioContent";
 import { Preloader } from "@/components/site/Preloader";
 import { ProjectModal } from "@/components/site/ProjectModal";
 import { ScrollProgress } from "@/components/site/ScrollProgress";
+import { SmoothScroll } from "@/components/site/SmoothScroll";
 import { getProject } from "@/data/projects";
 
 const title = "Aimen Ansari — Full-Stack Developer & Product Engineer";
@@ -66,6 +67,7 @@ function Index() {
 
   return (
     <div id="top" className="site-shell relative min-h-screen bg-background text-foreground">
+      <SmoothScroll />
       <Preloader />
       <ScrollProgress />
       <a
@@ -80,6 +82,9 @@ function Index() {
         <Navbar />
         <PortfolioContent onOpen={open} />
       </div>
+      {/* Full-width finale: nav is a sticky left rail, so contact + footer span
+          the whole container instead of the narrow 57% content column. */}
+      <ContactBand />
       <ProjectModal project={getProject(slug)} onClose={close} onNavigate={open} />
       <div className="site-noise" aria-hidden="true" />
     </div>

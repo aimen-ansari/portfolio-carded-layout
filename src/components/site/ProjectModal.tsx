@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { ArrowUpRight, X } from "lucide-react";
 
 import { projects, type Project } from "@/data/projects";
+import { getLenis } from "@/lib/lenis";
 
 export function ProjectModal({
   project,
@@ -50,11 +51,15 @@ export function ProjectModal({
 
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+    // Lenis drives the scroll position itself, so locking the body alone
+    // doesn't freeze the page — pause smooth scrolling while the modal is up.
+    getLenis()?.stop();
     const raf = requestAnimationFrame(() => dialogRef.current?.focus());
 
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      getLenis()?.start();
       cancelAnimationFrame(raf);
       previouslyFocused?.focus?.();
     };

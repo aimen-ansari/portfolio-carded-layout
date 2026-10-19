@@ -182,7 +182,7 @@ export function ContactForm() {
     <form
       onSubmit={onSubmit}
       aria-label={`Project inquiry form — sends to ${RECIPIENT}`}
-      className="relative overflow-hidden rounded-2xl border border-border bg-background/45 p-6 backdrop-blur-sm sm:p-8 lg:p-9"
+      className="@container relative overflow-hidden rounded-2xl border border-border bg-background/45 p-6 backdrop-blur-sm sm:p-8 lg:p-9"
     >
       <TopHairline />
 
@@ -193,18 +193,22 @@ export function ContactForm() {
         </span>
       </div>
 
-      <div className="mt-7 grid gap-x-8 gap-y-7 sm:grid-cols-2">
+      {/* Side-by-side only when the form itself is wide enough (container query),
+          so the fields stay readable inside the narrow desktop column. */}
+      <div className="mt-7 grid gap-x-8 gap-y-7 @sm:grid-cols-2">
         <FloatField label="Name" name="name" required autoComplete="name" />
         <FloatField label="Email" name="email" type="email" required autoComplete="email" />
       </div>
 
       <fieldset className="mt-8">
         <legend className="label-mono text-muted-foreground">What are you building?</legend>
-        <div className="mt-4 flex flex-wrap gap-2.5">
+        {/* Responsive tile grid — 2-up when the form is wide enough, 1-up on
+            narrow columns, so options never look cramped. */}
+        <div className="mt-4 grid grid-cols-1 gap-2 @xs:grid-cols-2">
           {projectTypes.map((type) => (
             <label key={type} className="cursor-pointer">
               <input type="radio" name="type" value={type} required className="peer sr-only" />
-              <span className="inline-flex rounded-full border border-border bg-surface/40 px-4 py-2 text-xs text-muted-foreground transition-colors duration-300 hover:border-accent/50 hover:text-foreground peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent">
+              <span className="flex h-full w-full items-center rounded-xl border border-border bg-surface/40 px-4 py-2.5 text-xs text-muted-foreground transition-colors duration-300 hover:border-accent/50 hover:text-foreground peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent">
                 {type}
               </span>
             </label>
