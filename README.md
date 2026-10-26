@@ -1,6 +1,6 @@
 # Aimen's Portfolio
 
-Create a premium, minimal, conversion-focused personal portfolio for Aimen Ansari — Full-Stack Developer.
+Create  premium, minimal, conversion-focused personal portfolio for Aimen Ansari — Full-Stack Developer.
 
 The portfolio will be used for cold-email outreach, LinkedIn, freelancing, and client acquisition, so the website must immediately show potential clients what I can build, proof through real projects, and an easy way to contact me.
 
