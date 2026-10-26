@@ -1,4 +1,5 @@
 // import tryonnex from "@/assets/project-tryonnex.jpg";
+import foundry from "@/assets/project-foundry.png";
 import rion from "@/assets/project-rion.jpg";
 import modernCo from "@/assets/project-modern-co-hero.jpg";
 import stahltechBusiness from "@/assets/project-stahltech-business.png";
@@ -77,6 +78,42 @@ export const projects: Project[] = [
       "Delivered the project across its complete lifecycle, from requirements and architecture through implementation, AI integration, testing, deployment, and final handover.",
   },
   */
+  {
+    slug: "foundry-business-leads",
+    name: "Foundry — Business Lead Discovery",
+    category: "Business Automation · Full-Stack Development",
+    short:
+      "A business lead discovery platform that helps freelancers and agencies find potential clients worldwide — discover businesses by location and industry, analyze website presence, manage leads, and export data for targeted outreach.",
+    stack: [
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "Supabase",
+      "Google Places API (New)",
+      "Netlify",
+    ],
+    image: foundry,
+    live: "https://foundry-business-leads.netlify.app/discover",
+    filters: ["Full Stack", "Business", "SaaS"],
+    needs: ["business", "saas", "internal"],
+    overview:
+      "Foundry is a business lead discovery platform built for freelancers and agencies who need a faster way to find and organize potential clients. It combines location- and industry-based discovery with website analysis, lead management, and exportable business data.",
+    problem:
+      "Freelancers and agencies often gather prospect information across scattered directories and manual research, which makes it difficult to build a focused outreach list and keep track of leads.",
+    solution:
+      "Foundry brings discovery, qualification, and organization into one workflow: search businesses by location and industry, review their website presence, save and manage leads, and export the resulting data for targeted outreach.",
+    features: [
+      "Business discovery by location and industry",
+      "Google Places-powered business search",
+      "Website presence analysis for each lead",
+      "Lead management and saved prospect lists",
+      "Exportable business data for outreach",
+      "Responsive React interface backed by Supabase",
+    ],
+    role: "Full-stack development across the React and TypeScript interface, Supabase data layer, Google Places API integration, lead-management workflows, responsive design, and Netlify deployment.",
+    outcome:
+      "Delivered a working lead-generation platform that helps freelancers and agencies research prospects, organize leads, and export data for targeted outreach.",
+  },
   {
     slug: "rion-apparels",
     name: "Rion Apparels — E-Commerce Website with Admin Panel",
